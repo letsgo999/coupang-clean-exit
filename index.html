@@ -3,148 +3,268 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>쿠팡 100% 깔끔 탈퇴 도우미</title>
+  <title>쿠팡 완전 탈퇴 가이드 (Privacy First)</title>
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { font-family: 'Noto Sans KR', sans-serif; }
+    /* 긴 스크린샷을 부분적으로 보여주기 위한 유틸리티 */
+    .crop-container { width: 100%; height: 250px; overflow: hidden; position: relative; border-radius: 0.75rem; border: 1px solid #e5e7eb; }
+    .crop-image { width: 100%; object-fit: cover; }
+    
+    /* 각 단계별 이미지 위치 조정 (하나의 긴 이미지를 쓴다고 가정) */
+    .crop-top { object-position: top center; }
+    .crop-center { object-position: center center; }
+    .crop-bottom { object-position: bottom center; }
+    /* 미세 조정 클래스들 */
+    .crop-pos-10 { object-position: 0% 10%; }
+    .crop-pos-30 { object-position: 0% 30%; }
+    .crop-pos-70 { object-position: 0% 70%; }
   </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-100 text-gray-800">
 
 <div id="root"></div>
 
 <script type="text/babel">
-  const { useState } = React;
+  const { useState, useEffect } = React;
 
-  // 아이콘 컴포넌트 (SVG 직접 구현)
-  const ChevronRightIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2"><polyline points="9 18 15 12 9 6"></polyline></svg>
-  );
+  // 아이콘
+  const Icons = {
+    Shield: () => <svg className="w-12 h-12 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>,
+    Monitor: () => <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>,
+    Mobile: () => <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>,
+    Check: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>,
+    RightArrow: () => <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+  };
 
-  const CheckCircleIcon = ({ size, className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-  );
-
-  // 단계별 데이터 설정
-  // TODO: 실제 이미지 경로로 교체 필요 (예: './images/step1.jpg')
-  const steps = [
+  // 데이터: 단계별 가이드
+  // TODO: 사용자의 실제 이미지 파일명으로 교체하세요. 현재는 Placeholder입니다.
+  const guideData = [
     {
       id: 1,
-      title: "남은 주문 확인하기",
-      desc: "배송 중이거나 반품/교환 진행 중인 상품이 하나라도 있으면 탈퇴가 불가능합니다. 모든 주문이 '구매 확정' 또는 '환불 완료' 상태인지 확인해주세요.",
-      imgSrc: "https://via.placeholder.com/400x250/eee/999?text=Step+1:+Order+Check",
-      action: "주문 내역 확인 완료"
+      title: "1. 남은 주문/반품 확인",
+      desc: "진행 중인 주문이 있으면 탈퇴가 불가능합니다. '마이쿠팡'에서 모든 주문이 배송완료/환불완료인지 확인하세요.",
+      cropClass: "crop-top", // 이미지 상단 표시
+      actionLabel: "주문 내역 정리 완료"
     },
     {
       id: 2,
-      title: "와우 멤버십 해지 (가장 중요!)",
-      desc: "멤버십이 켜져 있으면 탈퇴 버튼 자체가 눌리지 않습니다. 마이쿠팡 > 와우 멤버십에서 해지하세요. 방어 문구가 나와도 끝까지 '해지'를 선택해야 합니다.",
-      imgSrc: "https://via.placeholder.com/400x250/eee/999?text=Step+2:+Wow+Membership",
-      action: "멤버십 해지 완료"
+      title: "2. 와우 멤버십 해지",
+      desc: "가장 중요한 단계입니다. 멤버십 이용 중에는 탈퇴 버튼이 비활성화됩니다. '해지하기'를 찾아 끝까지 진행하세요.",
+      cropClass: "crop-pos-30", // 이미지 상단 30% 지점
+      actionLabel: "멤버십 해지 완료"
     },
     {
       id: 3,
-      title: "잔돈 및 카드 정보 삭제",
-      desc: "쿠페이 머니/캐시 잔액을 0원으로 만들고, 등록된 모든 카드와 계좌 정보를 삭제하세요. 내 소중한 개인정보를 남기지 마세요.",
-      imgSrc: "https://via.placeholder.com/400x250/eee/999?text=Step+3:+Clear+Pay+Info",
-      action: "잔액 0원 & 카드 삭제 완료"
+      title: "3. 쿠페이 & 결제수단 삭제",
+      desc: "쿠페이 머니를 0원으로 만들고, 등록된 카드와 계좌 정보를 모두 삭제해주세요.",
+      cropClass: "crop-center", // 이미지 중간 표시
+      actionLabel: "돈/카드 정보 삭제 완료"
     },
     {
       id: 4,
-      title: "PC 버전으로 전환",
-      desc: "앱 자체에는 탈퇴 버튼이 없습니다. 앱 설정 메뉴 하단에 있는 'PC 버전으로 이동' 버튼을 눌러 모바일 웹 PC 화면으로 접속해주세요.",
-      imgSrc: "https://via.placeholder.com/400x250/eee/999?text=Step+4:+Switch+to+PC",
-      action: "PC 화면 진입 완료"
+      title: "4. PC 버전으로 전환",
+      desc: "앱 내 설정 메뉴 하단에 'PC 버전으로 이동' 버튼이 있습니다. 모바일 웹에서는 탈퇴 메뉴가 숨겨져 있기 때문입니다.",
+      cropClass: "crop-pos-70", // 이미지 하단 70% 지점
+      actionLabel: "PC 화면 진입 완료"
     },
     {
       id: 5,
-      title: "최종 탈퇴 버튼 클릭",
-      desc: "PC 화면 우측 상단 '마이쿠팡 > 개인정보 확인/수정' 메뉴 맨 아래 '회원 탈퇴' 버튼이 있습니다. 비밀번호 입력 후 과감하게 눌러주세요.",
-      imgSrc: "https://via.placeholder.com/400x250/eee/999?text=Step+5:+Final+Exit",
-      action: "탈퇴 버튼 클릭 완료!"
+      title: "5. 최종 탈퇴 승인",
+      desc: "PC 화면 우측 상단 '마이쿠팡 > 회원정보 수정' 맨 아래 '회원 탈퇴' 버튼을 누르고 비밀번호를 입력하면 끝입니다.",
+      cropClass: "crop-bottom", // 이미지 하단 표시
+      actionLabel: "탈퇴 신청 완료!"
     }
   ];
 
-  function CoupangExitApp() {
-    const [currentStep, setCurrentStep] = useState(0);
-    const [isCompleted, setIsCompleted] = useState(false);
+  // 메인 컴포넌트
+  function App() {
+    const [mode, setMode] = useState('intro'); // intro, pc, mobile, success
+    const [step, setStep] = useState(0);
 
-    const handleNext = () => {
-      if (currentStep < steps.length - 1) {
-        setCurrentStep(currentStep + 1);
-        window.scrollTo(0, 0); // 다음 단계 이동 시 스크롤 상단으로
-      } else {
-        setIsCompleted(true);
+    // PC 모드 선택 시 쿠팡 창 열기 시도
+    const startPCMode = () => {
+      setMode('pc');
+      // 팝업 차단될 수 있으므로 사용자 액션 내에서 실행
+      const width = 600;
+      const height = window.screen.height;
+      const left = window.screen.width - width;
+      
+      const coupangWindow = window.open(
+        'https://login.coupang.com/login/login.pang', 
+        'coupangLogin', 
+        `width=${width},height=${height},left=${left},top=0,resizable=yes,scrollbars=yes`
+      );
+
+      if (!coupangWindow) {
+        alert("팝업 차단이 감지되었습니다. 브라우저 우측 상단에서 팝업을 허용해주시거나, 직접 쿠팡 사이트를 열어주세요.");
       }
     };
 
-    if (isCompleted) {
-      return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-green-50 p-6 text-center">
-          <CheckCircleIcon size={80} className="text-green-500 mb-6" />
-          <h1 className="text-3xl font-bold mb-2 text-gray-800">탈퇴 성공!</h1>
-          <p className="text-lg text-gray-700 mb-4">이제 쿠팡 앱을 삭제하시면 자유입니다.</p>
-          <div className="bg-white p-4 rounded-lg shadow-sm text-sm text-gray-500">
-            <p>💡 혹시 모르니 다시 로그인을 시도해보세요.<br/>로그인이 안 되어야 정상적으로 탈퇴된 것입니다.</p>
-          </div>
-        </div>
-      );
-    }
+    const handleNext = () => {
+      if (step < guideData.length - 1) {
+        setStep(step + 1);
+      } else {
+        setMode('success');
+      }
+    };
+
+    // 화면 렌더링 분기
+    if (mode === 'intro') return <IntroScreen onSelectPC={startPCMode} onSelectMobile={() => setMode('mobile')} />;
+    if (mode === 'success') return <SuccessScreen />;
 
     return (
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl flex flex-col">
-        {/* 헤더 & 프로그레스 바 */}
-        <div className="sticky top-0 bg-white z-10">
-          <div className="p-4 text-center border-b border-gray-100">
-            <h1 className="text-lg font-semibold text-gray-800">쿠팡 깔끔 탈퇴 가이드</h1>
+      <GuideScreen 
+        mode={mode} 
+        stepData={guideData[step]} 
+        totalSteps={guideData.length} 
+        currentStepIndex={step}
+        onNext={handleNext} 
+      />
+    );
+  }
+
+  // 1. 인트로 화면
+  function IntroScreen({ onSelectPC, onSelectMobile }) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-white max-w-2xl mx-auto">
+        <Icons.Shield />
+        <h1 className="text-2xl font-bold text-center mb-4 text-gray-900">쿠팡 완전 탈퇴 도우미</h1>
+        
+        <div className="bg-red-50 border border-red-100 p-4 rounded-lg mb-8 text-center shadow-sm">
+          <p className="text-sm text-red-700 font-medium leading-relaxed">
+            이 앱은 최근 <span className="font-bold underline">고객 정보 대규모 유출 이슈</span>에 따라<br/>
+            쿠팡을 완전히 탈퇴(계정 삭제)하고자 하는 분들을 위해<br/>
+            복잡한 해지 절차를 안내하기 위해 개발되었습니다.
+          </p>
+        </div>
+
+        <div className="w-full space-y-4">
+          <button 
+            onClick={onSelectPC}
+            className="w-full flex items-center justify-center p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md transition-all font-bold text-lg group"
+          >
+            <Icons.Monitor />
+            PC로 탈퇴하기
+            <span className="ml-2 text-xs font-normal opacity-80 bg-blue-800 px-2 py-0.5 rounded-full">화면 분할 추천</span>
+          </button>
+          
+          <button 
+            onClick={onSelectMobile}
+            className="w-full flex items-center justify-center p-4 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl border border-gray-300 transition-all font-bold text-lg"
+          >
+            <Icons.Mobile />
+            모바일폰으로 탈퇴하기
+          </button>
+        </div>
+        
+        <p className="mt-8 text-xs text-gray-400">
+          * PC 모드 선택 시 쿠팡 로그인 창이 새 창으로 열립니다.<br/>
+          * 본 가이드 앱은 쿠팡과 공식적인 관련이 없습니다.
+        </p>
+      </div>
+    );
+  }
+
+  // 2. 가이드 진행 화면 (PC/Mobile 공용 UI)
+  function GuideScreen({ mode, stepData, totalSteps, currentStepIndex, onNext }) {
+    return (
+      <div className={`min-h-screen flex flex-col bg-gray-50 ${mode === 'pc' ? 'max-w-md ml-0 border-r border-gray-200 shadow-xl' : 'max-w-md mx-auto'}`}>
+        
+        {/* 헤더 */}
+        <div className="bg-white p-4 border-b border-gray-200 sticky top-0 z-10">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded">
+              {mode === 'pc' ? 'PC 화면 분할 모드' : '모바일 모드'}
+            </span>
+            <span className="text-xs text-gray-400">Step {currentStepIndex + 1}/{totalSteps}</span>
           </div>
-          <div className="w-full bg-gray-200 h-2">
+          {/* 진행률 바 */}
+          <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
             <div 
-              className="bg-blue-600 h-2 transition-all duration-300 ease-in-out" 
-              style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+              className="bg-blue-600 h-full transition-all duration-300"
+              style={{ width: `${((currentStepIndex + 1) / totalSteps) * 100}%` }}
             ></div>
           </div>
         </div>
 
-        {/* 메인 컨텐츠 영역 */}
-        <div className="flex-1 p-6 overflow-y-auto">
-          <div className="mb-2">
-            <span className="inline-block bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded-full">
-              Step {currentStep + 1} / {steps.length}
-            </span>
-          </div>
-          <h2 className="text-2xl font-bold mb-6 text-gray-900">{steps[currentStep].title}</h2>
-          
-          {/* 이미지 영역 */}
-          <div className="w-full bg-gray-100 rounded-xl mb-6 flex items-center justify-center border border-gray-200 overflow-hidden shadow-sm">
-             <img src={steps[currentStep].imgSrc} alt={`Step ${currentStep + 1} Image`} className="w-full h-auto object-cover" />
+        {/* 컨텐츠 */}
+        <div className="flex-1 p-5 overflow-y-auto">
+          {mode === 'pc' && currentStepIndex === 0 && (
+            <div className="bg-yellow-50 p-3 rounded-lg text-xs text-yellow-800 mb-4 border border-yellow-200">
+              💡 <strong>팁:</strong> 오른쪽(또는 새 창)에 열린 쿠팡 페이지를 보면서 왼쪽의 가이드를 따라하세요.
+            </div>
+          )}
+
+          <h2 className="text-xl font-bold mb-4 text-gray-800">{stepData.title}</h2>
+
+          {/* 이미지 영역 (CSS로 크롭 시뮬레이션) */}
+          <div className="crop-container mb-5 bg-gray-200 shadow-inner">
+            {/* [중요] 여기에 실제 사용자가 올린 이미지 URL을 넣습니다.
+              지금은 예시 이미지 URL입니다.
+            */}
+            <img 
+              src="https://via.placeholder.com/400x1200/ddd/888?text=Long+Screenshot+Example" 
+              alt="Guide Step" 
+              className={`crop-image ${stepData.cropClass}`} 
+            />
           </div>
 
-          {/* 설명 텍스트 영역 */}
-          <div className="bg-orange-50 p-5 rounded-xl border-l-4 border-orange-400">
-            <p className="text-base text-gray-800 leading-relaxed font-medium">{steps[currentStep].desc}</p>
+          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+            <p className="text-gray-700 leading-relaxed font-medium">
+              {stepData.desc}
+            </p>
           </div>
         </div>
 
-        {/* 하단 액션 버튼 영역 */}
-        <div className="p-4 border-t border-gray-100 bg-white sticky bottom-0">
+        {/* 하단 버튼 */}
+        <div className="p-4 bg-white border-t border-gray-200">
           <button 
-            onClick={handleNext}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold py-4 rounded-xl flex items-center justify-center transition-colors shadow-md active:scale-[0.99] transform transition-transform"
+            onClick={onNext}
+            className="w-full py-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl font-bold text-lg flex items-center justify-center shadow-lg transition-transform active:scale-[0.98]"
           >
-            {steps[currentStep].action}
-            <ChevronRightIcon />
+            {stepData.actionLabel}
+            <Icons.RightArrow />
           </button>
         </div>
       </div>
     );
   }
 
+  // 3. 완료 화면
+  function SuccessScreen() {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-green-50 p-6 text-center max-w-md mx-auto">
+        <div className="bg-white p-4 rounded-full shadow-md mb-6">
+          <svg className="w-16 h-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">탈퇴 절차가 완료되었습니다!</h2>
+        <p className="text-gray-600 mb-8">
+          개인정보 보호를 위한 큰 결심,<br/>고생 많으셨습니다.
+        </p>
+        <div className="bg-white p-5 rounded-xl shadow-sm text-left w-full border border-gray-200">
+          <h3 className="font-bold text-gray-800 mb-2">✅ 마지막 체크리스트</h3>
+          <ul className="text-sm text-gray-600 space-y-2">
+            <li className="flex items-start"><Icons.Check/> <span className="ml-2">다시 로그인을 시도하여 접속 불가 확인</span></li>
+            <li className="flex items-start"><Icons.Check/> <span className="ml-2">앱 삭제하기</span></li>
+          </ul>
+        </div>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="mt-8 text-gray-400 underline text-sm hover:text-gray-600"
+        >
+          처음으로 돌아가기
+        </button>
+      </div>
+    );
+  }
+
   const root = ReactDOM.createRoot(document.getElementById('root'));
-  root.render(<CoupangExitApp />);
+  root.render(<App />);
 </script>
 
 </body>
