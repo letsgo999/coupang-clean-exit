@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>쿠팡 100% 깔끔 탈퇴 도우미</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+<div id="root"></div>
+
+<script type="text/babel">
+  const { useState } = React;
+
+  // 아이콘 컴포넌트 (SVG 직접 구현)
+  const ChevronRightIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+  );
+
+  const CheckCircleIcon = ({ size, className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+  );
+
+  // 단계별 데이터 설정
+  // TODO: 실제 이미지 경로로 교체 필요 (예: './images/step1.jpg')
+  const steps = [
+    {
+      id: 1,
+      title: "남은 주문 확인하기",
+      desc: "배송 중이거나 반품/교환 진행 중인 상품이 하나라도 있으면 탈퇴가 불가능합니다. 모든 주문이 '구매 확정' 또는 '환불 완료' 상태인지 확인해주세요.",
+      imgSrc: "https://via.placeholder.com/400x250/eee/999?text=Step+1:+Order+Check",
+      action: "주문 내역 확인 완료"
+    },
+    {
+      id: 2,
+      title: "와우 멤버십 해지 (가장 중요!)",
+      desc: "멤버십이 켜져 있으면 탈퇴 버튼 자체가 눌리지 않습니다. 마이쿠팡 > 와우 멤버십에서 해지하세요. 방어 문구가 나와도 끝까지 '해지'를 선택해야 합니다.",
+      imgSrc: "https://via.placeholder.com/400x250/eee/999?text=Step+2:+Wow+Membership",
+      action: "멤버십 해지 완료"
+    },
+    {
+      id: 3,
+      title: "잔돈 및 카드 정보 삭제",
+      desc: "쿠페이 머니/캐시 잔액을 0원으로 만들고, 등록된 모든 카드와 계좌 정보를 삭제하세요. 내 소중한 개인정보를 남기지 마세요.",
+      imgSrc: "https://via.placeholder.com/400x250/eee/999?text=Step+3:+Clear+Pay+Info",
+      action: "잔액 0원 & 카드 삭제 완료"
+    },
+    {
+      id: 4,
+      title: "PC 버전으로 전환",
+      desc: "앱 자체에는 탈퇴 버튼이 없습니다. 앱 설정 메뉴 하단에 있는 'PC 버전으로 이동' 버튼을 눌러 모바일 웹 PC 화면으로 접속해주세요.",
+      imgSrc: "https://via.placeholder.com/400x250/eee/999?text=Step+4:+Switch+to+PC",
+      action: "PC 화면 진입 완료"
+    },
+    {
+      id: 5,
+      title: "최종 탈퇴 버튼 클릭",
+      desc: "PC 화면 우측 상단 '마이쿠팡 > 개인정보 확인/수정' 메뉴 맨 아래 '회원 탈퇴' 버튼이 있습니다. 비밀번호 입력 후 과감하게 눌러주세요.",
+      imgSrc: "https://via.placeholder.com/400x250/eee/999?text=Step+5:+Final+Exit",
+      action: "탈퇴 버튼 클릭 완료!"
+    }
+  ];
+
+  function CoupangExitApp() {
+    const [currentStep, setCurrentStep] = useState(0);
+    const [isCompleted, setIsCompleted] = useState(false);
+
+    const handleNext = () => {
+      if (currentStep < steps.length - 1) {
+        setCurrentStep(currentStep + 1);
+        window.scrollTo(0, 0); // 다음 단계 이동 시 스크롤 상단으로
+      } else {
+        setIsCompleted(true);
+      }
+    };
+
+    if (isCompleted) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-green-50 p-6 text-center">
+          <CheckCircleIcon size={80} className="text-green-500 mb-6" />
+          <h1 className="text-3xl font-bold mb-2 text-gray-800">탈퇴 성공!</h1>
+          <p className="text-lg text-gray-700 mb-4">이제 쿠팡 앱을 삭제하시면 자유입니다.</p>
+          <div className="bg-white p-4 rounded-lg shadow-sm text-sm text-gray-500">
+            <p>💡 혹시 모르니 다시 로그인을 시도해보세요.<br/>로그인이 안 되어야 정상적으로 탈퇴된 것입니다.</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl flex flex-col">
+        {/* 헤더 & 프로그레스 바 */}
+        <div className="sticky top-0 bg-white z-10">
+          <div className="p-4 text-center border-b border-gray-100">
+            <h1 className="text-lg font-semibold text-gray-800">쿠팡 깔끔 탈퇴 가이드</h1>
+          </div>
+          <div className="w-full bg-gray-200 h-2">
+            <div 
+              className="bg-blue-600 h-2 transition-all duration-300 ease-in-out" 
+              style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+            ></div>
+          </div>
+        </div>
+
+        {/* 메인 컨텐츠 영역 */}
+        <div className="flex-1 p-6 overflow-y-auto">
+          <div className="mb-2">
+            <span className="inline-block bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded-full">
+              Step {currentStep + 1} / {steps.length}
+            </span>
+          </div>
+          <h2 className="text-2xl font-bold mb-6 text-gray-900">{steps[currentStep].title}</h2>
+          
+          {/* 이미지 영역 */}
+          <div className="w-full bg-gray-100 rounded-xl mb-6 flex items-center justify-center border border-gray-200 overflow-hidden shadow-sm">
+             <img src={steps[currentStep].imgSrc} alt={`Step ${currentStep + 1} Image`} className="w-full h-auto object-cover" />
+          </div>
+
+          {/* 설명 텍스트 영역 */}
+          <div className="bg-orange-50 p-5 rounded-xl border-l-4 border-orange-400">
+            <p className="text-base text-gray-800 leading-relaxed font-medium">{steps[currentStep].desc}</p>
+          </div>
+        </div>
+
+        {/* 하단 액션 버튼 영역 */}
+        <div className="p-4 border-t border-gray-100 bg-white sticky bottom-0">
+          <button 
+            onClick={handleNext}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold py-4 rounded-xl flex items-center justify-center transition-colors shadow-md active:scale-[0.99] transform transition-transform"
+          >
+            {steps[currentStep].action}
+            <ChevronRightIcon />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(<CoupangExitApp />);
+</script>
+
+</body>
+</html>
