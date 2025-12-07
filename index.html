@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>쿠팡 완전 탈퇴 가이드 (Final Fix)</title>
+  <title>쿠팡 완전 탈퇴 가이드 (최종 Fix & GitHub Image)</title>
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -12,10 +12,9 @@
   <style>
     body { font-family: 'Noto Sans KR', sans-serif; overflow-x: hidden; }
     
-    /* 이미지 크롭 컨테이너 */
     .crop-container { 
       width: 100%; 
-      height: 350px; 
+      height: 350px; /* 이미지 표시 영역 높이 */
       overflow: hidden; 
       position: relative; 
       border-radius: 0.75rem; 
@@ -23,18 +22,20 @@
       background: #f3f4f6; 
     }
     
-    /* 긴 스크린샷 이미지 처리 */
     .crop-image { 
       width: 100%; 
       object-fit: cover; 
+      /* 이미지의 실제 높이에 맞게 조절하세요. */
+      height: 700px; 
       transition: object-position 0.5s ease-in-out; 
     }
     
-    /* 단계별 이미지 위치 조정 (CSS) */
+    /* 각 이미지의 세로 위치를 조정하는 CSS (하나의 긴 이미지를 쓸 경우) */
+    /* 개별 이미지를 쓸 경우 이 CSS는 필요 없습니다. */
     .crop-step-0 { object-position: 0% 0%; }
-    .crop-step-1 { object-position: 0% 20%; }
-    .crop-step-2 { object-position: 0% 45%; }
-    .crop-step-3 { object-position: 0% 70%; }
+    .crop-step-1 { object-position: 0% 25%; } 
+    .crop-step-2 { object-position: 0% 50%; } 
+    .crop-step-3 { object-position: 0% 75%; } 
     .crop-step-4 { object-position: 0% 100%; }
   </style>
 </head>
@@ -44,6 +45,11 @@
 
 <script type="text/babel">
   const { useState, useEffect } = React;
+
+  /* !!! 중요: GitHub RAW 이미지 경로 설정 !!! */
+  // 이 부분을 사용자님의 GitHub RAW 주소로 변경하세요.
+  // 예시: "https://raw.githubusercontent.com/사용자이름/저장소이름/main/"
+  const GITHUB_RAW_BASE_URL = "YOUR_GITHUB_RAW_URL";
 
   /* 아이콘 컴포넌트 모음 */
   const Icons = {
@@ -60,35 +66,55 @@
       id: 1,
       title: "1. 남은 주문/반품 확인",
       desc: "진행 중인 주문이 하나라도 있으면 탈퇴가 불가능합니다. '마이쿠팡'에서 모든 주문이 구매확정 또는 환불완료 상태인지 확인해주세요.",
-      cropClass: "crop-step-0", 
+      imagePath: {
+        mobile: "images/mobile/step1_order_check.png",
+        pc: "images/pc/step1_order_check.png"
+      },
+      cropClass: "crop-step-0",
       actionLabel: "주문 내역 정리 완료"
     },
     {
       id: 2,
       title: "2. 와우 멤버십 해지",
       desc: "멤버십 이용 중에는 탈퇴 버튼이 눌리지 않습니다. '마이쿠팡 > 와우 멤버십'에서 해지하세요. 방어 문구가 나와도 끝까지 '해지'를 선택해야 합니다.",
-      cropClass: "crop-step-1", 
+      imagePath: {
+        mobile: "images/mobile/step2_wow_cancellation.png",
+        pc: "images/pc/step2_wow_cancellation.png"
+      },
+      cropClass: "crop-step-1",
       actionLabel: "멤버십 해지 완료"
     },
     {
       id: 3,
       title: "3. 쿠페이 & 결제수단 삭제",
       desc: "쿠페이 잔액을 0원으로 만들고, 등록된 카드/계좌 정보를 모두 삭제해주세요. 개인정보를 깔끔하게 지우는 단계입니다.",
-      cropClass: "crop-step-2", 
+      imagePath: {
+        mobile: "images/mobile/step3_coupay_delete.png",
+        pc: "images/pc/step3_coupay_delete.png"
+      },
+      cropClass: "crop-step-2",
       actionLabel: "돈/카드 정보 삭제 완료"
     },
     {
       id: 4,
       title: "4. PC 버전으로 전환",
       desc: "모바일 앱에는 탈퇴 메뉴가 없습니다. 앱 설정 메뉴 하단의 'PC 버전으로 이동' 버튼을 눌러주세요.",
-      cropClass: "crop-step-3", 
+      imagePath: {
+        mobile: "images/mobile/step4_to_pc.png",
+        pc: "images/pc/step4_to_pc.png"
+      },
+      cropClass: "crop-step-3",
       actionLabel: "PC 화면 진입 완료"
     },
     {
       id: 5,
       title: "5. 최종 탈퇴 승인",
       desc: "PC 화면의 '마이쿠팡 > 회원정보 수정' 메뉴 맨 아래에 있는 '회원 탈퇴' 버튼을 찾아 클릭하면 완료됩니다.",
-      cropClass: "crop-step-4", 
+      imagePath: {
+        mobile: "images/mobile/step5_final_exit.png",
+        pc: "images/pc/step5_final_exit.png"
+      },
+      cropClass: "crop-step-4",
       actionLabel: "탈퇴 신청 완료!"
     }
   ];
@@ -105,7 +131,7 @@
           <h3 className="text-red-600 font-bold mb-3">⚠️ 앱 개발 취지 및 안내</h3>
           <p className="text-sm text-gray-700 leading-relaxed text-left">
             최근 <strong>고객 정보 유출 이슈</strong>로 인해 계정을 삭제하고 싶지만, 
-            복잡한 절차 때문에 어려움을 겪는 분들을 위해 개발했습니다.<br/><br/>
+            복잡한 절차 때문에 어려움을 겪는 분들을 위해 개발되었습니다.<br/><br/>
             이 앱은 탈퇴 과정을 단계별로 안내해드리며, 특히 <strong>PC 화면 분할 모드</strong>를 
             사용하시면 더욱 편리하게 진행하실 수 있습니다.
           </p>
@@ -135,6 +161,13 @@
     const containerClass = mode === 'pc' 
       ? 'max-w-md ml-4 md:ml-12 lg:ml-20 border-r border-gray-200 shadow-xl' 
       : 'max-w-md mx-auto shadow-lg';
+
+    // 현재 단계 데이터
+    const currentData = guideData[step];
+    
+    // !!! 모드에 따른 이미지 URL 선택 로직 !!!
+    const imagePath = mode === 'pc' ? currentData.imagePath.pc : currentData.imagePath.mobile;
+    const imageUrl = GITHUB_RAW_BASE_URL + imagePath;
 
     return (
       <div className={`min-h-screen flex flex-col bg-white transition-all duration-300 ${containerClass}`}>
@@ -180,28 +213,28 @@
         {mode === 'pc' && step === 0 && (
           <div className="bg-blue-50 p-3 mx-4 mt-4 rounded-lg text-xs text-blue-800 border border-blue-200 leading-relaxed">
             📌 <strong>화면 배치 팁:</strong><br/>
-            쿠팡 로그인 창이 <strong>오른쪽 끝</strong>에 떴나요?<br/>
-            지금 보고 계신 가이드 창은 <strong>왼쪽</strong>에 두고, 두 창을 동시에 보면서 진행하세요.
+            쿠팡 로그인 창이 <strong>오른쪽 끝</strong>에 떴나요? 
+            이 가이드 창은 <strong>왼쪽</strong>에 두고 서로 겹치지 않게 보면서 진행하세요.
           </div>
         )}
 
         {/* 메인 컨텐츠 영역 */}
         <div className="flex-1 p-5 overflow-y-auto">
-          <h2 className="text-xl font-bold mb-4 text-gray-900">{guideData[step].title}</h2>
+          <h2 className="text-xl font-bold mb-4 text-gray-900">{currentData.title}</h2>
 
           <div className="crop-container mb-5 shadow-inner">
-             {/* [이미지 교체 방법] src 속성에 실제 이미지 URL을 넣으세요. */}
+             {/* 이미지 URL을 GitHub RAW 경로와 모드에 따라 결정 */}
              <img 
-               src="https://via.placeholder.com/400x1200/ddd/888?text=Long+Screenshot+Image" 
-               alt="Step Guide" 
-               className={`crop-image ${guideData[step].cropClass}`}
-               style={{ height: '1200px' }} 
+               src={imageUrl} 
+               alt={`${currentData.title} Step Guide`} 
+               className={`crop-image ${currentData.cropClass}`}
+               style={{ height: '700px' }} /* 권장 세로 사이즈에 맞게 조정 */
              />
           </div>
 
           <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
             <p className="text-gray-700 font-medium leading-relaxed">
-              {guideData[step].desc}
+              {currentData.desc}
             </p>
           </div>
         </div>
@@ -212,7 +245,7 @@
             onClick={onNext}
             className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg flex items-center justify-center shadow-lg active:scale-95 transition-transform"
           >
-            {guideData[step].actionLabel}
+            {currentData.actionLabel}
             <Icons.RightArrow />
           </button>
         </div>
@@ -241,15 +274,15 @@
 
   /* 메인 App 컴포넌트 */
   function App() {
-    const [view, setView] = useState('intro'); // intro, guide, success
-    const [mode, setMode] = useState('mobile'); // pc, mobile
+    const [view, setView] = useState('intro');
+    const [mode, setMode] = useState('mobile');
     const [step, setStep] = useState(0);
 
-    /* PC 팝업 열기 (오른쪽 정렬 로직) */
+    /* PC 팝업 열기 (오른쪽 정렬 로직 강화) */
     const openCoupangPopup = () => {
       const popupWidth = 500;
       const popupHeight = window.screen.availHeight || 800;
-      const leftPos = (window.screen.width || 1920) - popupWidth; // 오른쪽 끝 좌표 계산
+      const leftPos = (window.screen.width || 1920) - popupWidth;
       
       const win = window.open(
         'https://login.coupang.com/login/login.pang', 
